@@ -32,14 +32,22 @@ public class ProfileService {
     private String activationURL;
 
     public ProfileDTO registerProfile(ProfileDTO profileDTO) {
+        // ✅ Step 1: Check if email already exists
+        if (profileRepository.existsByEmail(profileDTO.getEmail())) {
+            throw new IllegalArgumentException("Email already registered! Please use a different email.");
+        }
+
+        // ✅ Step 2: Create and save the new profile
         ProfileEntity newProfile = toEntity(profileDTO);
         newProfile.setActivationToken(UUID.randomUUID().toString());
         newProfile = profileRepository.save(newProfile);
-        //send activation email
-        String activationLink = activationURL+"/activate?token=" + newProfile.getActivationToken();
+
+        // ✅ Step 3: Send activation email
+        String activationLink = activationURL + "/activate?token=" + newProfile.getActivationToken();
         String subject = "Activate your Money Manager account";
         String body = "Click on the following link to activate your account: " + activationLink;
         emailService.sendEmail(newProfile.getEmail(), subject, body);
+
         return toDTO(newProfile);
     }
 
